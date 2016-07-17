@@ -36,6 +36,8 @@ import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -44,6 +46,7 @@ import java.util.concurrent.TimeUnit;
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
 public class WeatherWatchFace extends CanvasWatchFaceService {
+
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
@@ -87,7 +90,8 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
-        Paint mTextPaint;
+        Paint mTimeTextPaint;
+        Paint mDateTextPaint;
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -101,6 +105,9 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
 
         float mXOffset;
         float mYOffset;
+
+        float mYOffsetTime;
+        float mYOffsetDate;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -121,12 +128,21 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
             Resources resources = WeatherWatchFace.this.getResources();
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
+            mYOffsetTime = resources.getDimension(R.dimen.digital_y_offset_time);
+            mYOffsetDate = resources.getDimension(R.dimen.digital_y_offset_date);
+
             mBackgroundPaint = new Paint();
             //mBackgroundPaint.setColor(resources.getColor(R.color.background));
             mBackgroundPaint.setColor(resources.getColor(R.color.primary));
 
-            mTextPaint = new Paint();
-            mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTimeTextPaint = new Paint();
+            mTimeTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
+            mDateTextPaint = new Paint();
+            mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
+
+            //mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg);
 
             mTime = new Time();
         }
@@ -188,12 +204,17 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
             // Load resources that have alternate values for round watches.
             Resources resources = WeatherWatchFace.this.getResources();
             boolean isRound = insets.isRound();
-            mXOffset = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+            mXOffset = resources.getDimension(isRound ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+//            float textSize = resources.getDimension(isRound
+//                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
             float textSize = resources.getDimension(isRound
-                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+                    ? R.dimen.digital_time_text_size_round : R.dimen.digital_time_text_size);
 
-            mTextPaint.setTextSize(textSize);
+            float dateTextSize = resources.getDimension(isRound
+                    ? R.dimen.digital_date_text_size_round : R.dimen.digital_date_text_size);
+
+            mTimeTextPaint.setTextSize(textSize);
+            mDateTextPaint.setTextSize(dateTextSize);
         }
 
         @Override
@@ -214,7 +235,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
                 if (mLowBitAmbient) {
-                    mTextPaint.setAntiAlias(!inAmbientMode);
+                    mTimeTextPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -250,6 +271,12 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
+
+            Calendar calendar = Calendar.getInstance();
+            //SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy");
+            String date = format.format(calendar.getTimeInMillis());
+
             // Draw the background.
             if (isInAmbientMode()) {
                 canvas.drawColor(Color.BLACK);
@@ -262,7 +289,19 @@ public class WeatherWatchFace extends CanvasWatchFaceService {
             String text = mAmbient
                     ? String.format("%d:%02d", mTime.hour, mTime.minute)
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
-            canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            //canvas.drawText(text, mXOffset, mYOffset, mTimeTextPaint);
+            //canvas.drawText(text, mXOffset, mYOffsetTime, mTimeTextPaint);
+            canvas.drawText(text, bounds.centerX() - mTimeTextPaint.measureText(text)/2, mYOffsetTime, mTimeTextPaint);
+
+            // Add another line to show the date
+            //canvas.drawText(date, mXOffset, mYOffsetDate, mDateTextPaint);
+            canvas.drawText(date, bounds.centerX() - mDateTextPaint.measureText(date)/2, mYOffsetDate, mDateTextPaint);
+
+            canvas.drawLine(bounds.centerX() - 40,
+                                getResources().getDimension(R.dimen.digital_y_offset_line),
+                                bounds.centerX() + 40,
+                                getResources().getDimension(R.dimen.digital_y_offset_line),
+                                mDateTextPaint);
         }
 
         /**
