@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Wearable</string>
+    <string name="digital_name">Weather Digital</string>
+    <string name="card_bounds_name">Weather Card Bounds</string>
+
+    <string name="test_name">Boomer</string>
+
+    <string name="intro">Waiting for data to arrive\u2026</string>
+    <string name="capability_2_notification">Capability 2</string>
+    <string name="capabilities_1_and_2_notification">Capabilities 1 and 2</string>
+    <string name="no_device">No device provides the requested capabilities</string>
+    <string name="connected_nodes">Nodes: %1$s</string>
+</resources>
