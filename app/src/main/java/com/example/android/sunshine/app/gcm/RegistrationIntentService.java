@@ -44,8 +44,7 @@ public class RegistrationIntentService extends IntentService {
             // ensure that they are processed sequentially.
             synchronized (TAG) {
                 // Initially this call goes out to the network to retrieve the token, subsequent calls
-                // are local.
-                InstanceID instanceID = InstanceID.getInstance(this);
+                  InstanceID instanceID = InstanceID.getInstance(this);
 
                 // TODO: gcm_default sender ID comes from the API console
                 String senderId = getString(R.string.gcm_defaultSenderId);

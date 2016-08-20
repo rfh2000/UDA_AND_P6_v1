@@ -37,6 +37,7 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 public class LocationEditTextPreference extends EditTextPreference {
+
     static final private int DEFAULT_MINIMUM_LOCATION_LENGTH = 2;
     private int mMinLength;
 
@@ -77,14 +78,16 @@ public class LocationEditTextPreference extends EditTextPreference {
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
 
 
+
+
                 // We are in a view right now, not an activity. So we need to get ourselves
                 // an activity that we can use to start our Place Picker intent. By using
                 // SettingsActivity in this way, we can ensure the result of the Place Picker
                 // intent comes to the right place for us to process it.
                 Activity settingsActivity = (SettingsActivity) context;
                 try {
-                    settingsActivity.startActivityForResult(
-                            builder.build(context), SettingsActivity.PLACE_PICKER_REQUEST);
+                    //settingsActivity.startActivityForResult(builder.build(context), SettingsActivity.PLACE_PICKER_REQUEST);
+                    settingsActivity.startActivityForResult(builder.build(settingsActivity), SettingsActivity.PLACE_PICKER_REQUEST);
 
                 } catch (GooglePlayServicesNotAvailableException
                         | GooglePlayServicesRepairableException e) {
