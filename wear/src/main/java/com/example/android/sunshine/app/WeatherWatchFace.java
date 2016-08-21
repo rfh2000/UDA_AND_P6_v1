@@ -65,7 +65,9 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
     private static final String WEARABLE_DATA_PATH = "/wearable_data";
 
-    private String dataReceived = "backup";
+    private static final String TAG = "TAG__________WEAR";
+
+    private String dataReceived = "10:34";
 
     private static final String START_ACTIVITY_PATH = "/start-activity";
     private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
@@ -76,7 +78,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
     @Override
     public Engine onCreateEngine() {
-        Log.v("TAG__________", "onCreateEngine");
+        Log.v(TAG, "onCreateEngine");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
@@ -88,19 +90,19 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.v("TAG__________", "onConnected");
+        Log.v(TAG, "onConnected");
         Wearable.DataApi.addListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.v("TAG__________", "onConnectionSuspended");
+        Log.v(TAG, "onConnectionSuspended");
         //Wearable.DataApi.removeListener(mGoogleApiClient, this);
     }
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
-        Log.v("TAG__________", "onDataChanged");
+        Log.v(TAG, "onDataChanged");
 //        for (DataEvent event : dataEventBuffer) {
 //            if (event.getType() == DataEvent.TYPE_CHANGED) {
 //                // DataItem changed
@@ -115,7 +117,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 //        }
 
 
-        // This is the received DataMap that is working
+        // This is the received DataMap that is working when sending a timestamp
 //        DataMap dataMap;
 //        for (DataEvent event : dataEventBuffer) {
 //            // Check the data type
@@ -131,19 +133,46 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 //            }
 //        }
 
-        // Loop through the events and get the updated date from the handheld
+        // This is the received DataMap that is working when sending updated forecast values
         DataMap dataMap;
         for (DataEvent event : dataEventBuffer) {
-            Uri uri = event.getDataItem().getUri();
-            String path = uri.getPath();
-            if (COUNT_PATH.equals(path)) {
-                dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
-                Log.v("____TAG", "DataMap received on watch: " + dataMap);
-                int i = dataMap.getInt(COUNT_KEY);
-                dataReceived = Integer.toString(i);
-                Log.v("____TAG", "DataMap value is: " + dataReceived);
+            // Check the data type
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                // Check the data path
+                String path = event.getDataItem().getUri().getPath();
+                if (path.equals(WEARABLE_DATA_PATH)) {
+
+                    dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
+                    Log.v(TAG, "DataMap received on watch: " + dataMap);
+
+                    String forecast = dataMap.getString("forecast");
+                    double high = dataMap.getDouble("high");
+                    double low = dataMap.getDouble("low");
+
+                    Log.v(TAG, "DataMap values are: " + forecast
+                            + "--" + Double.toString(high)
+                            + "--" + Double.toString(low));
+
+                    dataReceived = forecast
+                            + "--" + Double.toString(high)
+                            + "--" + Double.toString(low);
+                }
             }
         }
+
+//        // Loop through the events and get the updated count from the handheld
+//        DataMap dataMap;
+//        for (DataEvent event : dataEventBuffer) {
+//            Uri uri = event.getDataItem().getUri();
+//            String path = uri.getPath();
+//            if (COUNT_PATH.equals(path)) {
+//                dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
+//                Log.v("____TAG", "DataMap received on watch: " + dataMap);
+//                int i = dataMap.getInt(COUNT_KEY);
+//                dataReceived = Integer.toString(i);
+//                Log.v("____TAG", "DataMap value is: " + dataReceived);
+//            }
+//        }
 
     }
 
@@ -151,7 +180,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         if (connectionResult.getErrorCode() == ConnectionResult.API_UNAVAILABLE) {
             // The Wearable API is unavailable
-            Log.v("TAG__________", "The Wearable API is unavailable");
+            Log.v(TAG, "The Wearable API is unavailable");
         }
     }
 

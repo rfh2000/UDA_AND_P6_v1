@@ -32,6 +32,7 @@ import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.BuildConfig;
+import com.example.android.sunshine.app.ForecastAdapter;
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
@@ -41,6 +42,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -67,13 +69,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             "com.example.android.sunshine.app.ACTION_DATA_UPDATED";
     // Interval at which to sync with the weather, in seconds.
     // 60 seconds (1 minute) * 180 = 3 hours
-    public static final int SYNC_INTERVAL = 60;
+    public static final int SYNC_INTERVAL = 60; // This is original
+//    public static final int SYNC_INTERVAL = 60 * 10;
     //public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
 
-    private static final long MINUTE_IN_MILLIS = 1000 * 1;
+    private static final long MINUTE_IN_MILLIS = 1000;
 
 
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
@@ -485,9 +488,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     Log.d(TAG, "Content text is " + contentText);
 
                     // TESTING WEARABLE DATA LAYER
-                    //createGoogleApiClient();
+                    createGoogleApiClient(desc, high, low);
                     //increaseCounter();
-
 
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
                     // notifications.  Just throw in some data.
@@ -690,7 +692,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         spe.commit();
     }
 
-    private void createGoogleApiClient() {
+    private void createGoogleApiClient(final String forecast, final double high, final double low) {
         final String TAG = "____GoogleApiClient";
         //GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(getContext())
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
@@ -698,7 +700,16 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     @Override
                     public void onConnected(Bundle connectionHint) {
                         Log.d(TAG, "onConnected: " + connectionHint);
-                        // Now you can use the Data Layer API
+
+                        String WEARABLE_DATA_PATH = "/wearable_data";
+                        // Create a DataMap object and send it to the data layer
+                        DataMap dataMap = new DataMap();
+                        dataMap.putString("forecast", forecast);
+                        dataMap.putDouble("high", high);
+                        dataMap.putDouble("low", low);
+
+                        //Requires a new thread to avoid blocking the UI
+                        new SendToDataLayerThread(WEARABLE_DATA_PATH, dataMap).start();
                     }
                     @Override
                     public void onConnectionSuspended(int cause) {
@@ -725,6 +736,32 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult =
                 Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+    }
+
+    class SendToDataLayerThread extends Thread {
+        String path;
+        DataMap dataMap;
+
+        // Constructor for sending data objects to the data layer
+        SendToDataLayerThread(String p, DataMap data) {
+            path = p;
+            dataMap = data;
+        }
+
+        public void run() {
+            // Construct a DataRequest and send over the data layer
+            PutDataMapRequest putDMR = PutDataMapRequest.create(path);
+            putDMR.getDataMap().putAll(dataMap);
+            PutDataRequest request = putDMR.asPutDataRequest();
+            DataApi.DataItemResult result = Wearable.DataApi.putDataItem(mGoogleApiClient, request).await();
+            if (result.getStatus().isSuccess()) {
+                Log.v("SYNC_________TAG", "DataMap: " + dataMap + " sent successfully to data layer ");
+            }
+            else {
+                // Log an error
+                Log.v("SYNC_________TAG", "ERROR: failed to send DataMap to data layer");
+            }
+        }
     }
 
 }

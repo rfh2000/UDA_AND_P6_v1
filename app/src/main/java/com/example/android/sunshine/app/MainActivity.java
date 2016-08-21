@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-        mGeneratorExecutor = new ScheduledThreadPoolExecutor(1);
+        //mGeneratorExecutor = new ScheduledThreadPoolExecutor(1);
 
 
         mLocation = Utility.getPreferredLocation(this);
@@ -260,9 +260,9 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     @Override
     protected void onResume() {
         super.onResume();
-        mGoogleApiClient.connect();
-        mDataItemGeneratorFuture = mGeneratorExecutor.scheduleWithFixedDelay(
-                new DataItemGenerator(), 1, 5, TimeUnit.SECONDS);
+//        mGoogleApiClient.connect();
+//        mDataItemGeneratorFuture = mGeneratorExecutor.scheduleWithFixedDelay(
+//                new DataItemGenerator(), 1, 5, TimeUnit.SECONDS);
 
 
         String location = Utility.getPreferredLocation( this );
