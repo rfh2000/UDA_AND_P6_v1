@@ -1,4 +1,5 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
+
     <string name="app_name">Wearable</string>
     <string name="digital_name">Weather Digital</string>
     <string name="card_bounds_name">Weather Card Bounds</string>
@@ -10,4 +11,10 @@
     <string name="capabilities_1_and_2_notification">Capabilities 1 and 2</string>
     <string name="no_device">No device provides the requested capabilities</string>
     <string name="connected_nodes">Nodes: %1$s</string>
+
+
+    <!-- Strings for formatting weather-related data -->
+    <!-- Temperature format [CHAR LIMIT=5 -->
+    <string name="format_temperature"><xliff:g id="temp">%1.0f</xliff:g>\u00B0</string>
+
 </resources>

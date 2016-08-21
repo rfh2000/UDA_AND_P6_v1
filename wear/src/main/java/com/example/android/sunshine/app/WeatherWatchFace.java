@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
@@ -67,7 +68,10 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
     private static final String TAG = "TAG__________WEAR";
 
-    private String dataReceived = "10:34";
+    private String dataReceived = "14:37";
+    private String forecast = "";
+    private String high = "";
+    private String low = "";
 
     private static final String START_ACTIVITY_PATH = "/start-activity";
     private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
@@ -145,17 +149,25 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
                     dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                     Log.v(TAG, "DataMap received on watch: " + dataMap);
 
-                    String forecast = dataMap.getString("forecast");
-                    double high = dataMap.getDouble("high");
-                    double low = dataMap.getDouble("low");
+                    String forecastNew = dataMap.getString("forecast");
+                    double highNew = dataMap.getDouble("high");
+                    double lowNew = dataMap.getDouble("low");
 
-                    Log.v(TAG, "DataMap values are: " + forecast
-                            + "--" + Double.toString(high)
-                            + "--" + Double.toString(low));
+                    Log.v(TAG, "DataMap values are: " + forecastNew
+                            + "--" + Double.toString(highNew)
+                            + "--" + Double.toString(lowNew));
+
+//                    dataReceived = forecastNew
+//                            + "--" + Double.toString(highNew)
+//                            + "--" + Double.toString(lowNew);
+
+                    forecast = forecastNew;
+                    high = String.format(getResources().getString(R.string.format_temperature), highNew);
+                    low = String.format(getResources().getString(R.string.format_temperature), lowNew);
 
                     dataReceived = forecast
-                            + "--" + Double.toString(high)
-                            + "--" + Double.toString(low);
+                            + "--" + high
+                            + "--" + low;
                 }
             }
         }
@@ -206,12 +218,10 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
+
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
-        Paint mBackgroundPaint;
-        Paint mTimeTextPaint;
-        Paint mDateTextPaint;
-        Paint mExtraTextPaint;
+        Paint mBackgroundPaint, mTimeTextPaint, mDateTextPaint, mForecastPaint;
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
@@ -222,13 +232,8 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             }
         };
         int mTapCount;
-
-        float mXOffset;
-        float mYOffset;
-
-        float mYOffsetTime;
-        float mYOffsetDate;
-        float mYOffsetExtra;
+        float mXOffset, mYOffset;
+        float mYOffsetTime, mYOffsetDate, mYOffsetForecast;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -241,31 +246,37 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             super.onCreate(holder);
 
             setWatchFaceStyle(new WatchFaceStyle.Builder(WeatherWatchFace.this)
-                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
+//                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
+                    .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
                     .build());
-            Resources resources = WeatherWatchFace.this.getResources();
-            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
 
+            Resources resources = WeatherWatchFace.this.getResources();
+
+            mYOffset = resources.getDimension(R.dimen.digital_y_offset);
             mYOffsetTime = resources.getDimension(R.dimen.digital_y_offset_time);
             mYOffsetDate = resources.getDimension(R.dimen.digital_y_offset_date);
-            //mYOffsetExtra = resources.getDimension(R.dimen.digital_y_offset_extra);
+            mYOffsetForecast = resources.getDimension(R.dimen.digital_y_offset_forecast);
 
             mBackgroundPaint = new Paint();
-            //mBackgroundPaint.setColor(resources.getColor(R.color.background));
-            mBackgroundPaint.setColor(resources.getColor(R.color.primary));
-            //mBackgroundPaint.setColor(R.color.primary));
+            mBackgroundPaint.setColor(ContextCompat.getColor(getApplicationContext(), R.color.primary));
 
             mTimeTextPaint = new Paint();
-            mTimeTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mTimeTextPaint.setColor(ContextCompat.getColor(getApplicationContext(), R.color.digital_text));
+//            mTimeTextPaint.setTextSize(resources.getDimensionPixelSize
+//                    (R.dimen.digital_time_text_size_round));
 
             mDateTextPaint = new Paint();
-            mDateTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mDateTextPaint.setColor(ContextCompat.getColor(getApplicationContext(), R.color.digital_text));
+//            mDateTextPaint.setTextSize(resources.getDimensionPixelSize
+//                    (R.dimen.digital_date_text_size_round));
 
-//            mExtraTextPaint = new Paint();
-//            mExtraTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mForecastPaint = new Paint();
+            mForecastPaint.setColor(ContextCompat.getColor(getApplicationContext(), R.color.digital_text));
+//            mForecastPaint.setTextSize(resources.getDimensionPixelSize
+//                    (R.dimen.digital_forecast_text_size_round));
 
             //mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg);
 
@@ -329,21 +340,22 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             // Load resources that have alternate values for round watches.
             Resources resources = WeatherWatchFace.this.getResources();
             boolean isRound = insets.isRound();
-            mXOffset = resources.getDimension(isRound ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
-//            float textSize = resources.getDimension(isRound
-//                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-            float textSize = resources.getDimension(isRound
+
+            mXOffset = resources.getDimension(isRound
+                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+
+            float timeTextSize = resources.getDimension(isRound
                     ? R.dimen.digital_time_text_size_round : R.dimen.digital_time_text_size);
 
             float dateTextSize = resources.getDimension(isRound
                     ? R.dimen.digital_date_text_size_round : R.dimen.digital_date_text_size);
 
-//            float extraTextSize = resources.getDimension(isRound
-//                    ? R.dimen.digital_extra_text_size_round : R.dimen.digital_extra_text_size);
+            float forecastTextSize = resources.getDimension(isRound
+                    ? R.dimen.digital_forecast_text_size_round : R.dimen.digital_forecast_text_size);
 
-            mTimeTextPaint.setTextSize(textSize);
+            mTimeTextPaint.setTextSize(timeTextSize);
             mDateTextPaint.setTextSize(dateTextSize);
-//            mExtraTextPaint.setTextSize(extraTextSize);
+            mForecastPaint.setTextSize(forecastTextSize);
         }
 
         @Override
@@ -416,26 +428,29 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
             // Draw H:MM in ambient mode or H:MM:SS in interactive mode.
             mTime.setToNow();
-            String text = mAmbient
+            String timeText = mAmbient
                     ? String.format("%d:%02d", mTime.hour, mTime.minute)
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
-            //canvas.drawText(text, mXOffset, mYOffset, mTimeTextPaint);
-            //canvas.drawText(text, mXOffset, mYOffsetTime, mTimeTextPaint);
-            canvas.drawText(text, bounds.centerX() - mTimeTextPaint.measureText(text)/2, mYOffsetTime, mTimeTextPaint);
+
+            // Add a line to show the time
+            canvas.drawText(timeText, bounds.centerX() - mTimeTextPaint.measureText(timeText)/2,
+                    mYOffsetTime, mTimeTextPaint);
 
             // Add another line to show the date
-            //canvas.drawText(date, mXOffset, mYOffsetDate, mDateTextPaint);
-//            canvas.drawText(date, bounds.centerX() - mDateTextPaint.measureText(date)/2, mYOffsetDate, mDateTextPaint);
-            canvas.drawText(dataReceived, bounds.centerX() - mDateTextPaint.measureText(dataReceived)/2, mYOffsetDate, mDateTextPaint);
+            canvas.drawText(date, bounds.centerX() - mDateTextPaint.measureText(date)/2,
+                    mYOffsetDate, mDateTextPaint);
 
-            // Add another line to show the extra text
-//            canvas.drawText(extra, bounds.centerX() - mExtraTextPaint.measureText(extra)/2, mYOffsetExtra, mExtraTextPaint);
-
+            // Draw a line to separate date & time from forecast
             canvas.drawLine(bounds.centerX() - 40,
                     getResources().getDimension(R.dimen.digital_y_offset_line),
                     bounds.centerX() + 40,
                     getResources().getDimension(R.dimen.digital_y_offset_line),
                     mDateTextPaint);
+
+            // Add another line to show the forecast
+            canvas.drawText(dataReceived, bounds.centerX() - mForecastPaint.measureText(dataReceived)/2,
+                    mYOffsetForecast, mForecastPaint);
+
         }
 
         /**
