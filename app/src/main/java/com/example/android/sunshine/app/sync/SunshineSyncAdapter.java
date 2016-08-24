@@ -26,6 +26,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.format.DateFormat;
 import android.text.format.Time;
 import android.util.Log;
@@ -41,6 +43,7 @@ import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.PutDataMapRequest;
@@ -52,6 +55,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -60,6 +64,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.Timestamp;
+import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
@@ -488,7 +493,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     Log.d(TAG, "Content text is " + contentText);
 
                     // TESTING WEARABLE DATA LAYER
-                    createGoogleApiClient(desc, high, low);
+                    createGoogleApiClient(weatherId, desc, high, low);
                     //increaseCounter();
 
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
@@ -692,7 +697,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         spe.commit();
     }
 
-    private void createGoogleApiClient(final String forecast, final double high, final double low) {
+    public void createGoogleApiClient(final int weatherId, final String forecast, final double high, final double low) {
         final String TAG = "____GoogleApiClient";
         //GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(getContext())
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
@@ -701,12 +706,21 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     public void onConnected(Bundle connectionHint) {
                         Log.d(TAG, "onConnected: " + connectionHint);
 
+//                        PutDataMapRequest dataMap = PutDataMapRequest.create(IMAGE_PATH);
+//                        dataMap.getDataMap().putAsset(IMAGE_KEY, asset);
+//                        dataMap.getDataMap().putLong("time", new Date().getTime());
+//                        PutDataRequest request = dataMap.asPutDataRequest();
+
                         String WEARABLE_DATA_PATH = "/wearable_data";
                         // Create a DataMap object and send it to the data layer
                         DataMap dataMap = new DataMap();
+                        dataMap.putInt("weatherId", weatherId);
                         dataMap.putString("forecast", forecast);
                         dataMap.putDouble("high", high);
                         dataMap.putDouble("low", low);
+                        Bitmap bitmap = BitmapFactory.decodeResource(Resources.getSystem(), R.drawable.art_clear);
+                        Asset asset = createAssetFromBitmap(bitmap);
+                        dataMap.putAsset("weatherIcon", asset);
 
                         //Requires a new thread to avoid blocking the UI
                         new SendToDataLayerThread(WEARABLE_DATA_PATH, dataMap).start();
@@ -727,6 +741,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 .build();
         mGoogleApiClient.connect();
 
+    }
+
+    private static Asset createAssetFromBitmap(Bitmap bitmap) {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
+        return Asset.createFromBytes(byteStream.toByteArray());
     }
 
     // Create a data map and put data in it
