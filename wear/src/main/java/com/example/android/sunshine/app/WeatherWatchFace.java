@@ -81,6 +81,8 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 //    private String low = "5";
     private String low = "";
 
+    private int weatherId = -1;
+
     private static final String START_ACTIVITY_PATH = "/start-activity";
     private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
     public static final String COUNT_PATH = "/count";
@@ -159,7 +161,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
                     dataMap = DataMapItem.fromDataItem(event.getDataItem()).getDataMap();
                     Log.v(TAG, "DataMap received on watch: " + dataMap);
 
-                    int weatherId = dataMap.getInt("weatherId");
+                    int weatherIdNew = dataMap.getInt("weatherId");
                     String forecastNew = dataMap.getString("forecast");
                     double highNew = dataMap.getDouble("high");
                     double lowNew = dataMap.getDouble("low");
@@ -173,7 +175,8 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 //                            + "--" + Double.toString(highNew)
 //                            + "--" + Double.toString(lowNew);
 
-//                    forecast = forecastNew;
+                    weatherId = weatherIdNew;
+                    forecast = forecastNew;
                     high = String.format(getResources().getString(R.string.format_temperature), highNew);
                     low = String.format(getResources().getString(R.string.format_temperature), lowNew);
 
@@ -477,13 +480,16 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             //SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy");
             String date = format.format(calendar.getTimeInMillis());
-            //String extra;
 
             Resources resources = WeatherWatchFace.this.getResources();
 
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.art_clear);
-//            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 50, 50, false);
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
+//            // Static load of a drawable to test
+////            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.art_clear);
+//            Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
+//                                    Utility.getArtResourceForWeatherCondition(weatherId));
+//
+////            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 50, 50, false);
+//            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
 
             // Draw the background.
             if (isInAmbientMode()) {
@@ -523,6 +529,11 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
             // Only show weather if data has been received from
             if (!high.equals("")) {
+
+                Bitmap bitmap = BitmapFactory.decodeResource(getResources(),
+                        Utility.getArtResourceForWeatherCondition(weatherId));
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
+
                 // Add another line to show the weather icon
                 canvas.drawBitmap(resizedBitmap, bounds.centerX() - 80, mYOffsetForecast - 32, mForecastPaint);
 
