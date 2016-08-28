@@ -13,8 +13,14 @@
     <dimen name="digital_forecast_text_size">15dp</dimen>
     <dimen name="digital_forecast_text_size_round">20dp</dimen>
 
-    <dimen name="digital_extra_text_size">15dp</dimen>
-    <dimen name="digital_extra_text_size_round">20dp</dimen>
+    <dimen name="digital_high_text_size">20dp</dimen>
+    <dimen name="digital_high_text_size_round">25dp</dimen>
+
+    <dimen name="digital_low_text_size">15dp</dimen>
+    <dimen name="digital_low_text_size_round">20dp</dimen>
+
+    <!--<dimen name="digital_extra_text_size">15dp</dimen>-->
+    <!--<dimen name="digital_extra_text_size_round">20dp</dimen>-->
 
     <dimen name="digital_x_offset">15dp</dimen>
     <dimen name="digital_x_offset_round">25dp</dimen>
@@ -27,8 +33,18 @@
 
     <dimen name="digital_y_offset_time">80dp</dimen>
     <dimen name="digital_y_offset_date">100dp</dimen>
-    <dimen name="digital_y_offset_forecast">140dp</dimen>
+    <dimen name="digital_y_offset_forecast">150dp</dimen>
+    <!--<dimen name="digital_y_offset_forecast">140dp</dimen>-->
     <!--<dimen name="digital_y_offset_line">120dp</dimen>-->
     <dimen name="digital_y_offset_line">115dp</dimen>
+    <dimen name="digital_x_offset_line">40dp</dimen>
+
+    <dimen name="digital_icon_x_start_offset">80dp</dimen>
+    <dimen name="digital_icon_y_start_offset">32dp</dimen>
+
+    <dimen name="digital_lowtemp_x_offset">40dp</dimen>
+
+    <!--<dimen name="digital_bitmap_x_size">40</dimen>-->
+    <!--<dimen name="digital_bitmap_y_size">40</dimen>-->
 
 </resources>

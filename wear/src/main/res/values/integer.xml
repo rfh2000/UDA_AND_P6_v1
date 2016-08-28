@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="digital_bitmap_x_size">40</integer>
+    <integer name="digital_bitmap_y_size">40</integer>
+
+</resources>
