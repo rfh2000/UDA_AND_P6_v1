@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 public class WeatherWatchFace extends CanvasWatchFaceService implements
         DataApi.DataListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener  {
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final Typeface NORMAL_TYPEFACE =
             Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
@@ -128,7 +128,6 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             }
         }
     }
-
 
 
     @Override
@@ -387,12 +386,12 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
             }
 
             // Add a line to show the time
-            canvas.drawText(timeText, bounds.centerX() - mTimeTextPaint.measureText(timeText)/2,
+            canvas.drawText(timeText, bounds.centerX() - mTimeTextPaint.measureText(timeText) / 2,
                     mYOffsetTime, mTimeTextPaint);
 
             if (!isInAmbient) {
                 // Add a line to show the date
-                canvas.drawText(date, bounds.centerX() - mDateTextPaint.measureText(date)/2,
+                canvas.drawText(date, bounds.centerX() - mDateTextPaint.measureText(date) / 2,
                         mYOffsetDate, mDateTextPaint);
 
                 // Draw a line to separate date & time from forecast
@@ -428,11 +427,11 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
                 mForecastPaint.setFilterBitmap(true);
                 ColorMatrix cm = new ColorMatrix(
                         new float[]{
-                                0.5f,0.5f,0.5f,0,0,
-                                0.5f,0.5f,0.5f,0,0,
-                                0.5f,0.5f,0.5f,0,0,
-                                0,0,0,1,0,0,
-                                0,0,0,0,1,0
+                                0.5f, 0.5f, 0.5f, 0, 0,
+                                0.5f, 0.5f, 0.5f, 0, 0,
+                                0.5f, 0.5f, 0.5f, 0, 0,
+                                0, 0, 0, 1, 0, 0,
+                                0, 0, 0, 0, 1, 0
                         });
                 cm.setSaturation(0);
                 ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
@@ -440,7 +439,7 @@ public class WeatherWatchFace extends CanvasWatchFaceService implements
 
                 // Add a line to show the weather icon
                 canvas.drawBitmap(resizedBitmap,
-                        bounds.centerX() - getResources().getInteger(R.integer.digital_bitmap_x_size)/2,
+                        bounds.centerX() - getResources().getInteger(R.integer.digital_bitmap_x_size) / 2,
                         mYOffsetForecast,
                         mForecastPaint);
 

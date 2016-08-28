@@ -30,6 +30,12 @@ public class MainActivity extends Activity implements
 
     private GoogleApiClient mGoogleApiClient;
 
+    public static void LOGD(final String tag, String message) {
+        if (Log.isLoggable(tag, Log.DEBUG)) {
+            Log.d(tag, message);
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,21 +87,12 @@ public class MainActivity extends Activity implements
     public void onDataChanged(DataEventBuffer dataEvents) {
     }
 
-
     @Override
     public void onMessageReceived(MessageEvent event) {
     }
 
     @Override
     public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
-    }
-
-
-
-    public static void LOGD(final String tag, String message) {
-        if (Log.isLoggable(tag, Log.DEBUG)) {
-            Log.d(tag, message);
-        }
     }
 
 }
